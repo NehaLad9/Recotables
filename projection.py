@@ -53,6 +53,8 @@ plt.show()
 def effective(cth,r):
     return np.pi*r**2*(1+cth)/2
 
+
+
 def find_projection(r,theta):
     total_area = np.pi*r**2
     values=np.array(theta)
@@ -81,9 +83,7 @@ fraction,values = find_projection(r,theta)
 sensitivity = ang_sens(costheta)
 maxsensitivity=max(sensitivity)
 fraction *= maxsensitivity
-error = np.mean(sensitivity-fraction)
-print(error)
-fraction+=error
+
 
 
 fig,axes = plt.subplots(3,figsize=(8,8))
