@@ -33,29 +33,8 @@ costheta=np.cos(theta)
 direction = opts.direction
 
 
-DOMRadius = 0.16510*I3Units.m # 13" diameter
+DOMRadius = 16.510*I3Units.cm # 13" diameter
 referenceArea = I3Constants.pi*DOMRadius**2
-
-def create_sphere(x0,y0,z0,r,samples=100):
-    phi = np.linspace(0,2*np.pi,samples)
-    theta = np.linspace(0,np.pi,samples)
-    phi, theta = np.meshgrid(phi,theta)
-    x = x0 + r*np.cos(phi)*np.sin(theta)
-    y = y0 + r*np.sin(phi)*np.sin(theta)
-    z = z0 + r * np.cos(theta)
-    return x,y,z
-
-x,y,z = create_sphere(0,0,0,1,samples=samples)
-"""
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.plot_surface(x,y,z,rstride=1,cstride=1)
-
-ax.set_xlim([-1,1])
-ax.set_ylim([-1,1])
-ax.set_zlim([-1,1])
-plt.show()
-"""
 
 ####find the effective area
 
@@ -128,7 +107,28 @@ def GetIceCubeDOMAngularSensitivityLinear(direction):
         mult=-1
     else:
         mult=+1
-    coefficients = [1/2,1/2*mult]
+    coefficients = np.array([1./2,1./2*mult])
     return I3CLSimFunctionPolynomial(coefficients)
 
+GetIceCubeDOMAngularSensitivityLinear(direction)
+
+
 print(GetIceCubeDOMAngularSensitivityLinear(direction))
+from icecube.clsim.Gen2Sensors import GetDEggAcceptance,GetDEggAngularSensitivity
+
+
+referenceArea = I3Constants.pi*(300.*I3Units.mm/2)**2
+angularAcceptance = I3CLSimFunctionPolynomial(np.array([1.]))
+angularAcceptance = GetDEggAngularSensitivity(pmt='both')
+getValues = np.vectorize(angularAcceptance.GetValue)
+sensitivity = np.array(costheta)
+#saving values in reverse order
+for i, costh in enumerate(costheta):
+    sensitivity[len(costheta)-1-i] = getValues(float(costh))
+print(GetDEggAcceptance(active_fraction=1.).GetValue(400*I3Units.nanometer))
+domAcceptance = GetDEggAcceptance(active_fraction=1.).GetValue(400*I3Units.nanometer)*referenceArea
+#domAcceptance = GetWOMAcceptance().GetValue(4e-7)*referenceArea
+print(domAcceptance*sensitivity[0])
+fig2 = plt.figure()
+plt.plot(costheta,domAcceptance*sensitivity)
+fig2.savefig("wavelength400")
